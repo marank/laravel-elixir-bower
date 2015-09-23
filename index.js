@@ -11,6 +11,7 @@ var base64 = require('gulp-base64');
 var test = require('gulp-if');
 var ignore = require('gulp-ignore');
 var getFileSize = require("filesize");
+var less = require("gulp-less");
 
 var task = elixir.Task;
 var config = elixir.config;
@@ -65,16 +66,25 @@ elixir.extend('bower', function (options) {
             this.emit('end');
         };
 
+        var cssFilter = filter('**/*.css', {restore: true});
+        var lessFilter = filter('**/*.less', {restore: true});
+
         return gulp.src(mainBowerFiles({debugging: options.debugging}))
             .on('error', onError)
-            .pipe(filter('**/*.css'))
+            .pipe(cssFilter)
             .pipe(test(options.img.maxInlineSize > 0, base64({
                 extensions: options.img.extInline,
-                maxImageSize: options.img.maxInlineSize, // bytes 
+                maxImageSize: options.img.maxInlineSize, // bytes
                 debug: options.debugging,
             })))
             .pipe(concat(options.css.file))
             .pipe(test(options.css.minify,minify()))
+            .pipe(cssFilter.restore)
+            .pipe(lessFilter)
+            .pipe(less())
+            .pipe(concat(options.css.file))
+            .pipe(test(options.css.minify,minify()))
+            .pipe(lessFilter.restore)
             .pipe(gulp.dest(options.css.output))
             .pipe(notify({
                 title: 'Laravel Elixir',
@@ -112,9 +122,9 @@ elixir.extend('bower', function (options) {
             }));
 
     });
-    
+
     gulp.task('bower-fonts', function(){
-        
+
         var onError = function (err) {
 
             notify.onError({
@@ -126,7 +136,7 @@ elixir.extend('bower', function (options) {
 
             this.emit('end');
         };
-        
+
         return gulp.src(mainBowerFiles({
                 debugging: options.debugging,
                 filter: (/\.(eot|svg|ttf|woff|woff2|otf)$/i)
@@ -157,15 +167,15 @@ elixir.extend('bower', function (options) {
         };
 
         var isInline = function (file) {
-            
+
             var filesize = file.stat ? getFileSize(file.stat.size) : getFileSize(Buffer.byteLength(String(file.contents)));
             var fileext = file.path.split('.').pop();
-            
+
             if (options.debugging)
             {
                 console.log("Size of file:" + file.path + " (" + 1024*parseFloat(filesize) +" / max="+options.img.maxInlineSize+")");
             }
-            
+
             return options.img.extInline.indexOf(fileext) > -1 && 1024*parseFloat(filesize) < options.img.maxInlineSize;
         }
 
