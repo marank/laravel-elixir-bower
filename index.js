@@ -12,6 +12,7 @@ var test = require('gulp-if');
 var ignore = require('gulp-ignore');
 var getFileSize = require("filesize");
 var less = require("gulp-less");
+var sass = require("gulp-sass");
 
 var task = elixir.Task;
 var config = elixir.config;
@@ -57,40 +58,42 @@ elixir.extend('bower', function (options) {
     gulp.task('bower-css', function () {
         var onError = function (err) {
             notify.onError({
-                title: "Laravel Elixir",
-                subtitle: "Bower Files CSS Compilation Failed!",
-                message: "Error: <%= error.message %>",
-                icon: __dirname + '/../icons/fail.png'
+                title: "Laravel Elixir: Bower",
+                message: "CSS Compile Error: <%= error.message %>",
+                icon: __dirname + '/../laravel-elixir/icons/fail.png'
             })(err);
 
             this.emit('end');
         };
 
-        var cssFilter = filter('**/*.css', {restore: true});
+        var  cssFilter = filter('**/*.css',  {restore: true});
         var lessFilter = filter('**/*.less', {restore: true});
+        var sassFilter = filter('**/*.scss', {restore: true});
 
         return gulp.src(mainBowerFiles({debugging: options.debugging}))
             .on('error', onError)
-            .pipe(cssFilter)
+            .pipe(cssFilter)                            // Process CSS
             .pipe(test(options.img.maxInlineSize > 0, base64({
                 extensions: options.img.extInline,
                 maxImageSize: options.img.maxInlineSize, // bytes
                 debug: options.debugging,
             })))
             .pipe(concat(options.css.file))
-            .pipe(test(options.css.minify,minify()))
             .pipe(cssFilter.restore)
-            .pipe(lessFilter)
+            .pipe(lessFilter)                           // Process Less
             .pipe(less())
             .pipe(concat(options.css.file))
-            .pipe(test(options.css.minify,minify()))
             .pipe(lessFilter.restore)
+            .pipe(sassFilter)                           // Process Sass/Scss
+            .pipe(sass())
+            .pipe(concat(options.css.file))
+            .pipe(sassFilter.restore)
+            .pipe(test(options.css.minify,minify()))
             .pipe(gulp.dest(options.css.output))
             .pipe(notify({
-                title: 'Laravel Elixir',
-                subtitle: 'CSS Bower Files Imported!',
-                icon: __dirname + '/../icons/laravel.png',
-                message: ' '
+                title: 'Laravel Elixir: Bower',
+                message: 'CSS Files Imported!',
+                icon: __dirname + '/../laravel-elixir/icons/laravel.png'
             }));
 
     });
@@ -99,10 +102,9 @@ elixir.extend('bower', function (options) {
         var onError = function (err) {
 
             notify.onError({
-                title: "Laravel Elixir",
-                subtitle: "Bower Files JS Compilation Failed!",
-                message: "Error: <%= error.message %>",
-                icon: __dirname + '/../icons/fail.png'
+                title: "Laravel Elixir: Bower",
+                message: "JavaScript Compile Error: <%= error.message %>",
+                icon: __dirname + '/../laravel-elixir/icons/fail.png'
             })(err);
 
             this.emit('end');
@@ -115,10 +117,9 @@ elixir.extend('bower', function (options) {
             .pipe(test(options.js.uglify,uglify()))
             .pipe(gulp.dest(options.js.output))
             .pipe(notify({
-                title: 'Laravel Elixir',
-                subtitle: 'Javascript Bower Files Imported!',
-                icon: __dirname + '/../icons/laravel.png',
-                message: ' '
+                title: 'Laravel Elixir: Bower',
+                message: 'JavaScript Files Imported!',
+                icon: __dirname + '/../laravel-elixir/icons/laravel.png'
             }));
 
     });
@@ -128,10 +129,9 @@ elixir.extend('bower', function (options) {
         var onError = function (err) {
 
             notify.onError({
-                title: "Laravel Elixir",
-                subtitle: "Bower Files Font Copy Failed!",
-                message: "Error: <%= error.message %>",
-                icon: __dirname + '/../icons/fail.png'
+                title: "Laravel Elixir: Bower",
+                message: "Font Copy Error: <%= error.message %>",
+                icon: __dirname + '/../laravel-elixir/icons/fail.png'
             })(err);
 
             this.emit('end');
@@ -145,10 +145,9 @@ elixir.extend('bower', function (options) {
             .pipe(changed(options.font.output))
             .pipe(gulp.dest(options.font.output))
             .pipe(notify({
-                title: 'Laravel Elixir',
-                subtitle: 'Font Bower Files Imported!',
-                icon: __dirname + '/../icons/laravel.png',
-                message: ' '
+                title: 'Laravel Elixir: Bower',
+                message: 'Font Files Copied!',
+                icon: __dirname + '/../laravel-elixir/icons/laravel.png'
             }));
     });
 
@@ -157,10 +156,9 @@ elixir.extend('bower', function (options) {
         var onError = function (err) {
 
             notify.onError({
-                title: "Laravel Elixir",
-                subtitle: "Bower Files Images Copy Failed!",
-                message: "Error: <%= error.message %>",
-                icon: __dirname + '/../icons/fail.png'
+                title: "Laravel Elixir: Bower",
+                message: "Image Copy Error: <%= error.message %>",
+                icon: __dirname + '/../laravel-elixir/icons/fail.png'
             })(err);
 
             this.emit('end');
@@ -188,10 +186,9 @@ elixir.extend('bower', function (options) {
             .pipe(changed(options.img.output))
             .pipe(gulp.dest(options.img.output))
             .pipe(notify({
-                title: 'Laravel Elixir',
-                subtitle: 'Images Bower Files Imported!',
-                icon: __dirname + '/../icons/laravel.png',
-                message: ' '
+                title: 'Laravel Elixir: Bower',
+                message: 'Images Files Copied!',
+                icon: __dirname + '/../laravel-elixir/icons/laravel.png'
             }));
 
     });
